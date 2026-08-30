@@ -4,7 +4,20 @@ import re
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
+# Canal onde links serão apagados
 CANAL_BLOQUEADO = 1522383551222251592
+
+# Permissões necessárias para ler mensagens
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+
+# Detecta links
+link_regex = re.compile(
+    r"(https?://\S+|www\.\S+)",
+    re.IGNORECASE
+)
 
 @client.event
 async def on_ready():
@@ -13,20 +26,22 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    # Ignora mensagens enviadas por bots
+
+    # Ignora mensagens de bots
     if message.author.bot:
         return
 
-    # Só funciona no canal escolhido
+    # Só verifica o canal escolhido
     if message.channel.id != CANAL_BLOQUEADO:
         return
 
-    # Encontrou link = apaga
+    # Se tiver link, apaga
     if link_regex.search(message.content):
         try:
             await message.delete()
             print(f"Link apagado de {message.author}")
+
         except discord.Forbidden:
-            print("ERRO: O bot não tem permissão para apagar mensagens.")
+            print("ERRO: bot sem permissão para apagar mensagens.")
 
 client.run(TOKEN)
